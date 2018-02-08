@@ -1,0 +1,13 @@
+{
+	"rootFolder":"./Crawler",
+    "foldersToScan" : [
+    	{
+    		"folderName" : "Adobe",
+    		"urlColumnKey" : ""
+    	},
+    	{
+    		"folderName":"Bing",
+    		"urlColumnKey":""
+    	}
+    ]
+}
