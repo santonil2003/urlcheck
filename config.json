@@ -3,11 +3,7 @@
     "foldersToScan" : [
     	{
     		"folderName" : "Adobe",
-    		"urlColumnKey" : ""
-    	},
-    	{
-    		"folderName":"Bing",
-    		"urlColumnKey":""
+    		"urlColumn" : "productURL"
     	}
     ]
 }

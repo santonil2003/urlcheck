@@ -14,23 +14,40 @@ config.foldersToScan.forEach(function(folder) {
     var folderPath = config.rootFolder + '/' + folder.folderName + '/';
 
     var data = {};
-    
+
 
     listFiles(folderPath, function(filename) {
-        
+
         var filePath = folderPath + filename;
 
         csv()
             .fromFile(filePath)
             .on('json', (jsonObj) => {
-                console.log(jsonObj);
+                var productUrl = jsonObj[folder.urlColumn];
+
+                urlCheck(productUrl, function(url, res) {
+
+                    if (res.url != url) {
+                        console.log(filePath);
+                        console.log(url);
+                        console.log(res.url);
+                        console.log("Not OK");
+                    } else {
+                        console.log(filePath);
+                        console.log(url);
+                        console.log(res.url);
+                        console.log("OK");
+                    }
+
+                });
             })
             .on('done', (error) => {
                 console.log(error)
             });
 
     }, function(err) {
-        throw err;
+        // update global error...
+        console.log(err);
     });
 
     /*
@@ -43,7 +60,7 @@ config.foldersToScan.forEach(function(folder) {
 
 
 // list files from given path
-function listFiles(dirname, onFileList, onError){
+function listFiles(dirname, onFileList, onError) {
     fs.readdir(dirname, function(err, filenames) {
         if (err) {
             onError(err);
@@ -79,38 +96,24 @@ function readFiles(dirname, onFileContent, onError) {
 
 
 
-function urlCheck() {
-    /**
-     * url arrays
-     */
-    var urls = [];
-    urls.push('https://www.microsoft.com/en-us/store/p/youtube-tv/9NCPJ3X23P3FN8?rtc=1');
-    urls.push('https://www.microsoft.com/en-us/store/p/youtube-tv/9NCPJ3XP3FN8?rtc=1');
-    urls.push('https://www.microsoftnaku.no');
+function urlCheck(url, callBack) {
+    try {
 
-    /**
-     * for every url check html
-     */
-    urls.forEach(function(url) {
-        console.log(url);
-        try {
-            urlExists(url, function(err, exists) {
-                if (exists) {
-                    var request = require('sync-request');
-                    var res = request('GET', url, {
-                        'headers': {
-                            'user-agent': 'firefox'
-                        }
-                    });
-                    console.log(res.url);
-                } else {
-                    console.log(url + " Does not exist");
-                }
-            });
-        } catch (err) {
-            console.log("Error : " + url + " , Message : " + err.message);
-        }
-    });
+        var request = require('sync-request');
+
+        var res = request('GET', url, {
+            'headers': {
+                'user-agent': 'firefox'
+            }
+        });
+
+        callBack(url, res);
+
+
+    } catch (err) {
+        console.log("Error : " + url + " , Message : " + err.message);
+    }
+
 };
 
 
