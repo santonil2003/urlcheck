@@ -2,8 +2,10 @@
 	"rootFolder":"./Crawler",
     "foldersToScan" : [
     	{
-    		"folderName" : "Adobe",
-    		"urlColumn" : "productURL"
+    		"folderName" : "test",
+			"urlColumn" : "productURL",
+			"idColumn" : "ID"
     	}
-    ]
+	],
+	"resultFolder" : "./Result" 
 }

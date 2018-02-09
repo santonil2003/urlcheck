@@ -5,16 +5,26 @@ const fs = require('fs')
 
 var request = require('sync-request');
 var urlExists = require('url-exists');
+var intersection = require('array-intersection');
+
+
 var config = require('./config.json');
 const csv = require('csvtojson');
+const json2csv = require('json2csv');
 
+//https://www.microsoft.com/library/errorpages/smarterror.aspx?correlationId=7+7R6nS4SU6rNWIx.1
+
+
+var data = [];
+var fields = ['filePath', 'Id', 'productUrl', 'returnUrl'];
+var extensionRegx = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gmi
+var errorPageRegex = /smarterror/g
+
+var validDataFileExtensions = ['.CSV', '.csv', '.CSV'];
 
 config.foldersToScan.forEach(function(folder) {
 
     var folderPath = config.rootFolder + '/' + folder.folderName + '/';
-
-    var data = {};
-
 
     listFiles(folderPath, function(filename) {
 
@@ -23,26 +33,64 @@ config.foldersToScan.forEach(function(folder) {
         csv()
             .fromFile(filePath)
             .on('json', (jsonObj) => {
+
                 var productUrl = jsonObj[folder.urlColumn];
+
+                var id = jsonObj[folder.idColumn];
 
                 urlCheck(productUrl, function(url, res) {
 
-                    if (res.url != url) {
-                        console.log(filePath);
-                        console.log(url);
-                        console.log(res.url);
-                        console.log("Not OK");
-                    } else {
-                        console.log(filePath);
-                        console.log(url);
-                        console.log(res.url);
-                        console.log("OK");
+                    var returnUrl = res.url;
+
+                    var isSmartError = returnUrl.match(extensionRegx);
+
+                    if (isSmartError) {
+
+                        var errorData = {
+                            "filePath": filePath,
+                            "Id": id,
+                            "productUrl": url,
+                            "returnUrl": returnUrl
+                        };
+
+                        data.push(errorData);
+
                     }
 
+                }, function(err) {
+                    console.log(err.message);
                 });
             })
             .on('done', (error) => {
-                console.log(error)
+
+                var resultCsv = json2csv({ data: data, fields: fields });
+
+                var resultFilePath = config.resultFolder + '/result-' + getCurrentDayTimestamp() + '.csv';
+
+
+
+                fs.writeFile(resultFilePath, resultCsv, function(err) {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log(resultFilePath);
+
+
+
+                    var processedFolder = folderPath + 'processed';
+
+                    if (!fs.existsSync(processedFolder)) {
+                        fs.mkdirSync(processedFolder);
+                    }
+
+                    move(filePath, processedFolder + '/' + getCurrentDayTimestamp() + '-' + filename, function() {
+                        console.log(filePath + " moved to " + processedFolder);
+                    });
+
+                });
+
+
+
             });
 
     }, function(err) {
@@ -68,7 +116,19 @@ function listFiles(dirname, onFileList, onError) {
         }
 
         filenames.forEach(function(filename) {
-            onFileList(filename);
+
+            var fileExtension = filename.match(extensionRegx);
+
+            if (fileExtension && fileExtension.length) {
+                var searchIndex = validDataFileExtensions.indexOf(fileExtension[0]);
+
+                if (searchIndex >= 0) {
+                    onFileList(filename);
+                }
+            }
+
+
+
         });
 
     });
@@ -94,9 +154,57 @@ function readFiles(dirname, onFileContent, onError) {
 }
 
 
+function move(oldPath, newPath, callback) {
+
+    fs.rename(oldPath, newPath, function(err) {
+        if (err) {
+            if (err.code === 'EXDEV') {
+                copy();
+            } else {
+                callback(err);
+            }
+            return;
+        }
+        callback();
+    });
+
+    function copy() {
+        var readStream = fs.createReadStream(oldPath);
+        var writeStream = fs.createWriteStream(newPath);
+
+        readStream.on('error', callback);
+        writeStream.on('error', callback);
+
+        readStream.on('close', function() {
+            fs.unlink(oldPath, callback);
+        });
+
+        readStream.pipe(writeStream);
+    }
+}
 
 
-function urlCheck(url, callBack) {
+
+function getCurrentDayTimestamp() {
+    var d = new Date();
+
+    return new Date(
+        Date.UTC(
+            d.getFullYear(),
+            d.getMonth(),
+            d.getDate(),
+            d.getHours(),
+            d.getMinutes(),
+            d.getSeconds()
+        )
+        // `toIsoString` returns something like "2017-08-22T08:32:32.847Z"
+        // and we want the first part ("2017-08-22")
+    ).toISOString().slice(0, 23);
+}
+
+
+
+function urlCheck(url, callBack, onError) {
     try {
 
         var request = require('sync-request');
@@ -109,13 +217,17 @@ function urlCheck(url, callBack) {
 
         callBack(url, res);
 
-
     } catch (err) {
-        console.log("Error : " + url + " , Message : " + err.message);
+        onError(err);
     }
 
 };
 
 
+/*
+process.on('exit', function (){
+    console.log("Exiting...");
+});
+*/
 //console.log("Exiting.....");
 //process.exit();
