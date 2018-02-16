@@ -4,7 +4,7 @@
         "folderName": "Adobe",
         "productUrlColumnIndex": 3,
         "productIdColumnIndex": 1,
-        "skip": "0"
+        "skip": "1"
     }, {
         "folderName": "Bing",
         "productUrlColumnIndex": 4,
@@ -14,7 +14,7 @@
         "folderName": "Channel Advisor",
         "productUrlColumnIndex": 1,
         "productIdColumnIndex": 18,
-        "skip": "1"
+        "skip": "0"
     }, {
         "folderName": "Facebook",
         "productUrlColumnIndex": 5,

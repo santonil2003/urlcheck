@@ -109,7 +109,8 @@ config.foldersToScan.forEach(function(folder) {
 
 
                 }, function(err) {
-                    console.log(err.message);
+                    console.log("Url : "+productUrl + " seems to invalid as "+err.message);
+                    console.log("Makesure, the conlumn index : "+folder.productUrlColumnIndex+ " is a valid url column");
                 });
 
             });
@@ -145,7 +146,7 @@ config.foldersToScan.forEach(function(folder) {
             }
 
             io.move(filePath,processedFilePath, function() {
-                console.log(filePath + " Moved to " + fprocessedFilePath);
+                console.log(filePath + " Moved to " + processedFilePath);
             });
 
 
