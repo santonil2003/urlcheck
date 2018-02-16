@@ -1,11 +1,25 @@
 {
-	"rootFolder":"./Crawler",
-    "foldersToScan" : [
-    	{
-    		"folderName" : "test",
-			"urlColumn" : "productURL",
-			"idColumn" : "ID"
-    	}
-	],
-	"resultFolder" : "./Result" 
+    "rootFolder": "./Crawler",
+    "foldersToScan": [{
+        "folderName": "Adobe",
+        "productUrlColumnIndex": 3,
+        "productIdColumnIndex": 1,
+        "skip": "0"
+    }, {
+        "folderName": "Bing",
+        "productUrlColumnIndex": 4,
+        "productIdColumnIndex": 0,
+        "skip": "1"
+    }, {
+        "folderName": "Channel Advisor",
+        "productUrlColumnIndex": 1,
+        "productIdColumnIndex": 18,
+        "skip": "1"
+    }, {
+        "folderName": "Facebook",
+        "productUrlColumnIndex": 5,
+        "productIdColumnIndex": 0,
+        "skip": "1"
+    }],
+    "resultFolder": "./Result"
 }

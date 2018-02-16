@@ -8,9 +8,6 @@ var io = require('./lib/io.js');
 var utility = require('./lib/utility.js');
 var config = require('./config.json');
 
-
-var runTime = utility.getCurrentDayTimestamp();
-
 /**
  * Regex
  */
@@ -45,7 +42,7 @@ config.foldersToScan.forEach(function(folder) {
         var filePath = folderPath + filename;
         var sheets = xlsx.parse(filePath);
 
-         console.log("\nFile : " + filePath);
+         console.log("\n File : " + filePath);
         // parse sheet
         sheets.forEach(function(sheet) {
             console.log("Sheet :  " + sheet.name);
@@ -115,40 +112,15 @@ config.foldersToScan.forEach(function(folder) {
             });
 
 
-            // write the result csv
-            var resultCsv = json2csv({ data: errorPageUrls, fields: resultSheetColumn });
-            var resultFilePath = config.resultFolder + '/result-' + runTime + '.csv';
-            console.log("Saving crawl result for "+filePath);
-
-
-            fs.writeFile(resultFilePath, resultCsv, function(err) {
-                if (err) {
-                    throw err;
-                }
-            });
-
-
             return; // skip after reading sheet 1
         });
 
-
         /**
-        * Move processed files inside processed folder
+        * update processed file list
         */
 
-          var processedFolder = folderPath + 'processed';
-
-          var processedFilePath = processedFolder+'/'+runTime+'-'+filename;
-
-            if (!fs.existsSync(processedFolder)) {
-                fs.mkdirSync(processedFolder);
-            }
-
-            io.move(filePath,processedFilePath function() {
-                console.log(filePath + " Moved to " + fprocessedFilePath);
-            });
-
-
+        var processedFile = {"folderPath": folderPath, "filename": filename};
+        processedFiles.push(processedFile);
         
 
     }, function(err) {
@@ -159,5 +131,51 @@ config.foldersToScan.forEach(function(folder) {
 
 
 process.on('exit', function(code) {
-   console.log("Exit....");
+
+   console.log("Broken Links...");
+   console.log(errorPageUrls);
+   // console.log(processedFiles);
+
+
+   
+
+    var resultCsv = json2csv({ data: errorPageUrls, fields: resultSheetColumn });
+
+    var resultFilePath = config.resultFolder + '/result-' + utility.getCurrentDayTimestamp() + '.csv';
+
+
+     console.log("Saving Result into "+resultFilePath);
+
+    
+    fs.writeFile(resultFilePath, resultCsv, function(err) {
+        if (err) {
+            throw err;
+        }
+
+        console.log(resultCsv);
+
+
+
+                /**
+        * Moving processed files into processed folder
+        */
+        processedFiles.forEach(function(processedFile){
+
+            var processedFolder = processedFile.folderPath + 'processed';
+            var processedFile = processedFile.folderPath + processedFile.filename;
+
+            if (!fs.existsSync(processedFolder)) {
+                fs.mkdirSync(processedFolder);
+            }
+
+            io.move(processedFile, processedFolder + '/' + utility.getCurrentDayTimestamp() + '-' + processedFile.filename, function() {
+                console.log(processedFile + " Moved to " + processedFolder);
+            });
+
+        });
+
+        
+    });
+
+
 });
