@@ -144,7 +144,7 @@ config.foldersToScan.forEach(function(folder) {
                 fs.mkdirSync(processedFolder);
             }
 
-            io.move(filePath,processedFilePath function() {
+            io.move(filePath,processedFilePath, function() {
                 console.log(filePath + " Moved to " + fprocessedFilePath);
             });
 
